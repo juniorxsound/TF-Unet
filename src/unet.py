@@ -3,6 +3,7 @@ import numpy as np
 
 __DEBUG__ = True
 
+
 class UNet(object):
 
     '''
@@ -30,7 +31,7 @@ class UNet(object):
             # We shall define the weights that will be trained using create_weights function.
             weights = UNet.create_weights(
                 shape=[output_channels, output_channels, input_channels, kernel_size])
-            print(weights.get_shape())
+
             # We create biases using the create_biases function. These are also trained.
             biases = UNet.create_biases(kernel_size)
 
@@ -46,7 +47,7 @@ class UNet(object):
             # Output layer is fed to Relu which is the activation function for us.
             if use_relu is True:
                 layer = tf.nn.relu(layer)
-            
+
             # Create summaries for TensorBoard
             tf.summary.histogram("weights", weights)
             tf.summary.histogram("biases", biases)
@@ -143,6 +144,7 @@ Used for unit testing the creation of each layer ⚠️ should not be used by di
 '''
 if __name__ == "__main__":
 
+    # If for some reason debug is false set it to true, since this block only runs for testing so we want debug prints
     if __DEBUG__ is False:
         __DEBUG__ = True
 
