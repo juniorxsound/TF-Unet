@@ -14,5 +14,5 @@ shell:
 jupyter:
 	docker run -p 8888:8888 -w /data --rm -it -v `pwd`:/data -t $(docker_image_tag_name) jupyter notebook --allow-root \
 
-run-model-tests:
-	docker run -w /data --rm -it -v `pwd`:/data -t $(docker_image_tag_name) python ./src/model.py
+test-unet:
+	docker run -w /data --rm -it -v `pwd`:/data -t $(docker_image_tag_name) python ./src/unet.py

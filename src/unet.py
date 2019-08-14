@@ -1,9 +1,9 @@
 import tensorflow as tf
+import numpy as np
 
 __DEBUG__ = True
 
-
-class DepthNet(object):
+class UNet(object):
 
     '''
     Utility section for stuff that get's reused when building the network
@@ -28,11 +28,11 @@ class DepthNet(object):
                    name='conv'):
         with tf.name_scope(name):
             # We shall define the weights that will be trained using create_weights function.
-            weights = DepthNet.create_weights(
+            weights = UNet.create_weights(
                 shape=[output_channels, output_channels, input_channels, kernel_size])
             print(weights.get_shape())
             # We create biases using the create_biases function. These are also trained.
-            biases = DepthNet.create_biases(kernel_size)
+            biases = UNet.create_biases(kernel_size)
 
             # Creating the convolutional layer
             layer = tf.nn.conv2d(input=input,
@@ -46,7 +46,7 @@ class DepthNet(object):
             # Output layer is fed to Relu which is the activation function for us.
             if use_relu is True:
                 layer = tf.nn.relu(layer)
-
+            
             # Create summaries for TensorBoard
             tf.summary.histogram("weights", weights)
             tf.summary.histogram("biases", biases)
@@ -68,11 +68,11 @@ class DepthNet(object):
                      name='upconv'):
         with tf.name_scope(name):
             # We shall define the weights that will be trained using create_weights function.
-            weights = DepthNet.create_weights(
+            weights = UNet.create_weights(
                 shape=[output_channels, output_channels, input_channels, kernel_size])
 
             # We create biases using the create_biases function. These are also trained.
-            biases = DepthNet.create_biases(kernel_size)
+            biases = UNet.create_biases(kernel_size)
 
             # Creating the convolutional layer
             layer = tf.nn.conv2d_transpose(value=input,
@@ -152,7 +152,7 @@ if __name__ == "__main__":
     # Create down conv layer
     print('\nCreating down conv layer (batch_dim, height, width, depth)')
     print('Input shape: {}'.format(x.get_shape()))
-    layer = DepthNet.conv_layer(x, 3, 3, 32, layer_stride=[1, 2, 2, 1])
+    layer = UNet.conv_layer(x, 3, 3, 32, layer_stride=[1, 2, 2, 1])
 
     # Assert shapes
     assert int(x.get_shape()[1]) / 2 == layer.get_shape()[1]
@@ -162,7 +162,7 @@ if __name__ == "__main__":
     # Create regular conv layer
     print('\nCreating regular conv layer (batch_dim, height, width, depth)')
     print('Input shape: {}'.format(x.get_shape()))
-    layer = DepthNet.conv_layer(x, 3, 3, 3)
+    layer = UNet.conv_layer(x, 3, 3, 3)
 
     # Assert shapes
     assert int(x.get_shape()[1]) == layer.get_shape()[1]
@@ -172,9 +172,9 @@ if __name__ == "__main__":
     # Create upconv (transposed conv) layer
     print('\nCreating upconv layer (batch_dim, height, width, depth)')
     print('Input shape: {}'.format(x.get_shape()))
-    layer = DepthNet.upconv_layer(x, [-1, 360, 640, 3], 3, 3, 3)
+    layer = UNet.upconv_layer(x, [-1, 360, 640, 3], 3, 3, 3)
 
     # Assert shapes
-    # assert int(x.get_shape()[1]) == layer.get_shape()[1]
-    # assert int(x.get_shape()[2]) == layer.get_shape()[2]
-    # print('✅ Regular conv keeps height, width and depth the SAME')
+    assert int(x.get_shape()[1]) * 2 == layer.get_shape()[1]
+    assert int(x.get_shape()[2]) * 2 == layer.get_shape()[2]
+    print('✅ Transposed conv doubles height, width but keeps depth the SAME')
