@@ -1,4 +1,4 @@
-FROM tensorflow/tensorflow:latest-devel-py3
+FROM tensorflow/tensorflow:latest-py3
 LABEL Author="Or Fleisher <contact@orfleisher.com>"
 LABEL Title="Depth estimation from stereo imagery"
 
