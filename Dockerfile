@@ -2,6 +2,9 @@ FROM tensorflow/tensorflow:latest-devel-py3
 LABEL Author="Or Fleisher <contact@orfleisher.com>"
 LABEL Title="Depth estimation from stereo imagery"
 
+# Run in non-interactive mode
+ENV DEBIAN_FRONTEND=noninteractive 
+
 # Add the user's bin to the path
 ENV PATH "$PATH:/root/.local/bin"
 
