@@ -1,148 +1,93 @@
 import tensorflow as tf
+from tensorflow.keras.layers import MaxPooling2D, Conv2D, concatenate, Dropout, UpSampling2D, Input
+from tensorflow.keras.models import Model, Sequential
+from tensorflow.keras.optimizers import Adam
 
-__DEBUG__ = True
-
-
-class UNet():
-
-    '''
-    A static utility method to create tf.Variable for weights
-    '''
-    @staticmethod
-    def _create_weights(shape, name='W'):
-        return tf.Variable(tf.random.truncated_normal(shape, stddev=0.05), name=name)
+def UNet(pretrained_weights=None, input_size=(480, 640, 1)):
+    
+    inputs = Input(input_size)
 
     '''
-    A static utility method to create tf.Variable for biases
+    Downsample
     '''
-    @staticmethod
-    def _create_biases(size, name='B'):
-        return tf.Variable(tf.constant(0.05, shape=[size]), name=name)
+    conv1 = Conv2D(64, 3, activation='relu', padding='same',
+                   kernel_initializer='he_normal')(inputs)
+    conv1 = Conv2D(64, 3, activation='relu', padding='same',
+                   kernel_initializer='he_normal')(conv1)
+    pool1 = MaxPooling2D(pool_size=(2, 2))(conv1)
 
-    '''
-    @TODO document
-    '''
-    @staticmethod
-    def conv(input,
-             input_channels,
-             output_channels,
-             kernel_size,
-             layer_stride=[1, 1, 1, 1],
-             use_relu=True,
-             name='conv'):
-        with tf.name_scope(name):
-            # We shall define the weights that will be trained using create_weights function.
-            weights = UNet._create_weights(
-                shape=[output_channels, output_channels, input_channels, kernel_size])
+    conv2 = Conv2D(128, 3, activation='relu', padding='same',
+                   kernel_initializer='he_normal')(pool1)
+    conv2 = Conv2D(128, 3, activation='relu', padding='same',
+                   kernel_initializer='he_normal')(conv2)
+    pool2 = MaxPooling2D(pool_size=(2, 2))(conv2)
 
-            # We create biases using the _create_weights function. These are also trained.
-            biases = UNet._create_biases(kernel_size)
+    conv3 = Conv2D(256, 3, activation='relu', padding='same',
+                   kernel_initializer='he_normal')(pool2)
+    conv3 = Conv2D(256, 3, activation='relu', padding='same',
+                   kernel_initializer='he_normal')(conv3)
+    pool3 = MaxPooling2D(pool_size=(2, 2))(conv3)
 
-            # Creating the convolutional layer
-            layer = tf.nn.conv2d(input=input,
-                                 filter=weights,
-                                 strides=layer_stride,
-                                 padding='SAME')
+    conv4 = Conv2D(512, 3, activation='relu', padding='same',
+                   kernel_initializer='he_normal')(pool3)
+    conv4 = Conv2D(512, 3, activation='relu', padding='same',
+                   kernel_initializer='he_normal')(conv4)
+    drop4 = Dropout(0.5)(conv4)
+    pool4 = MaxPooling2D(pool_size=(2, 2))(drop4)
 
-            # Add the biases to the layer
-            layer += biases
-
-            # Max pool the layer
-            layer = tf.nn.max_pool2d(layer,
-                                     [1, 2, 2, 1],
-                                     strides=[1, 2, 2, 1],
-                                     padding='SAME')
-
-            # Output layer is fed to Relu which is the activation function for us.
-            if use_relu is True:
-                layer = tf.nn.relu(layer)
-
-            # Create summaries for TensorBoard
-            tf.compat.v1.summary.histogram("weights", weights)
-            tf.compat.v1.summary.histogram("biases", biases)
-            tf.compat.v1.summary.histogram("activitions", layer)
-
-            # Debug prints
-            if (__DEBUG__):
-                print('Layer shape: {}'.format(layer.get_shape()))
-
-            return layer
+    conv5 = Conv2D(1024, 3, activation='relu', padding='same',
+                   kernel_initializer='he_normal')(pool4)
+    conv5 = Conv2D(1024, 3, activation='relu', padding='same',
+                   kernel_initializer='he_normal')(conv5)
+    drop5 = Dropout(0.5)(conv5)
 
     '''
-    @TODO document
+    Upsample
     '''
-    @staticmethod
-    def upconv(input,
-               output_shape,
-               input_channels,
-               output_channels,
-               kernel_size,
-               layer_stride=[1, 2, 2, 1],
-               use_relu=True,
-               name='upconv'):
-        with tf.name_scope(name):
-            # We shall define the weights that will be trained using _create_weights function.
-            weights = UNet._create_weights(
-                shape=[output_channels, output_channels, input_channels, kernel_size])
+    up6 = Conv2D(512, 3, activation='relu', padding='same',
+                 kernel_initializer='he_normal')(UpSampling2D(size=(2, 2))(drop5))
+    merge6 = concatenate([drop4, up6], axis=3)
+    conv6 = Conv2D(512, 3, activation='relu', padding='same',
+                   kernel_initializer='he_normal')(merge6)
+    conv6 = Conv2D(512, 3, activation='relu', padding='same',
+                   kernel_initializer='he_normal')(conv6)
 
-            # We create biases using the _create_weights function. These are also trained.
-            biases = UNet._create_biases(kernel_size)
+    up7 = Conv2D(256, 3, activation='relu', padding='same',
+                 kernel_initializer='he_normal')(UpSampling2D(size=(2, 2))(conv6))
+    merge7 = concatenate([conv3, up7], axis=3)
+    conv7 = Conv2D(256, 3, activation='relu', padding='same',
+                   kernel_initializer='he_normal')(merge7)
+    conv7 = Conv2D(256, 3, activation='relu', padding='same',
+                   kernel_initializer='he_normal')(conv7)
 
-            # Creating the convolutional layer
-            layer = tf.nn.conv2d_transpose(value=input,
-                                           filter=weights,
-                                           output_shape=output_shape,
-                                           strides=layer_stride,
-                                           padding='SAME')
+    up8 = Conv2D(128, 2, activation='relu', padding='same',
+                 kernel_initializer='he_normal')(UpSampling2D(size=(2, 2))(conv7))
+    merge8 = concatenate([conv2, up8], axis=3)
+    conv8 = Conv2D(128, 3, activation='relu', padding='same',
+                   kernel_initializer='he_normal')(merge8)
+    conv8 = Conv2D(128, 3, activation='relu', padding='same',
+                   kernel_initializer='he_normal')(conv8)
 
-            # Add the biases to the layer
-            layer += biases
+    up9 = Conv2D(64, 2, activation='relu', padding='same',
+                 kernel_initializer='he_normal')(UpSampling2D(size=(2, 2))(conv8))
+    merge9 = concatenate([conv1, up9], axis=3)
+    conv9 = Conv2D(64, 3, activation='relu', padding='same',
+                   kernel_initializer='he_normal')(merge9)
+    conv9 = Conv2D(64, 3, activation='relu', padding='same',
+                   kernel_initializer='he_normal')(conv9)
+    conv9 = Conv2D(2, 3, activation='relu', padding='same',
+                   kernel_initializer='he_normal')(conv9)
+    conv10 = Conv2D(1, 1, activation='relu')(conv9)
 
-            # Output layer is fed to Relu which is the activation function for us.
-            if use_relu is True:
-                layer = tf.nn.relu(layer)
+    model = Model(inputs=inputs, outputs=conv10)
 
-            # Create summaries for TensorBoard
-            tf.compat.v1.summary.histogram("weights", weights)
-            tf.compat.v1.summary.histogram("biases", biases)
-            tf.compat.v1.summary.histogram("activitions", layer)
+    model.compile(optimizer='adam', loss='mse', metrics=['accuracy', 'mse'])
 
-            # Debug prints
-            if (__DEBUG__):
-                print('Layer shape: {}'.format(layer.get_shape()))
+    if(pretrained_weights):
+        model.load_weights(pretrained_weights)
 
-            return layer
+    return model
 
-
-'''
-Used for unit testing the creation of each layer ⚠️ should not be used by directly, see train.py for the proper interface
-'''
-if __name__ == "__main__":
-
-    # If for some reason debug is false set it to true, since this block only runs for testing so we want debug prints
-    if __DEBUG__ is False:
-        __DEBUG__ = True
-
-    # Create a test input layer
-    x = tf.compat.v1.placeholder(
-        tf.float32, shape=[None, 180, 320, 3], name="x")
-
-    # Create down conv layer
-    print('\nCreating down conv layer (batch_dim, height, width, depth)')
-    print('Input shape: {}'.format(x.get_shape()))
-    layer = UNet.conv(x, 3, 3, 32)
-
-    # Assert shapes
-    assert int(x.get_shape()[1]) / 2 == layer.get_shape()[1]
-    assert int(x.get_shape()[2]) / 2 == layer.get_shape()[2]
-    print('✅ Down conv reduces height and width by a factor of 2')
-
-    # Create upconv (transposed conv) layer
-    print('\nCreating upconv layer (batch_dim, height, width, depth)')
-    print('Input shape: {}'.format(x.get_shape()))
-    layer = UNet.upconv(x, [-1, 360, 640, 3], 3, 3, 3)
-
-    # Assert shapes
-    assert int(x.get_shape()[1]) * 2 == layer.get_shape()[1]
-    assert int(x.get_shape()[2]) * 2 == layer.get_shape()[2]
-    print('✅ Transposed conv doubles height, width but keeps depth the SAME')
+if __name__ == '__main__':
+    unet = UNet()
+    unet.summary()
