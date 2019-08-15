@@ -7,11 +7,11 @@ __DEBUG__ = True
 class UNet(object):
 
     '''
-    Utility section for stuff that get's reused when building the network
+    A static utility method to create tf.Variable for weights
     '''
     @staticmethod
     def create_weights(shape, name='W'):
-        return tf.Variable(tf.truncated_normal(shape, stddev=0.05), name=name)
+        return tf.Variable(tf.random.truncated_normal(shape, stddev=0.05), name=name)
 
     @staticmethod
     def create_biases(size, name='B'):
@@ -49,9 +49,9 @@ class UNet(object):
                 layer = tf.nn.relu(layer)
 
             # Create summaries for TensorBoard
-            tf.summary.histogram("weights", weights)
-            tf.summary.histogram("biases", biases)
-            tf.summary.histogram("activitions", layer)
+            tf.compat.v1.summary.histogram("weights", weights)
+            tf.compat.v1.summary.histogram("biases", biases)
+            tf.compat.v1.summary.histogram("activitions", layer)
 
             # Debug prints
             if (__DEBUG__):
@@ -90,9 +90,9 @@ class UNet(object):
                 layer = tf.nn.relu(layer)
 
             # Create summaries for TensorBoard
-            tf.summary.histogram("weights", weights)
-            tf.summary.histogram("biases", biases)
-            tf.summary.histogram("activitions", layer)
+            tf.compat.v1.summary.histogram("weights", weights)
+            tf.compat.v1.summary.histogram("biases", biases)
+            tf.compat.v1.summary.histogram("activitions", layer)
 
             # Debug prints
             if (__DEBUG__):
@@ -149,7 +149,7 @@ if __name__ == "__main__":
         __DEBUG__ = True
 
     # Create a test input layer
-    x = tf.placeholder(tf.float32, shape=[None, 180, 320, 3], name="x")
+    x = tf.compat.v1.placeholder(tf.float32, shape=[None, 180, 320, 3], name="x")
 
     # Create down conv layer
     print('\nCreating down conv layer (batch_dim, height, width, depth)')
