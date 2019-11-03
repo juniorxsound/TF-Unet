@@ -7,4 +7,5 @@ before_install:
 - make build
 
 script:
+- make lint
 - make test-unet

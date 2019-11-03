@@ -1,8 +1,8 @@
 """TF-UNet written by @juniorxsound <https://orfleisher.com>"""
 
 # Dependencies
-from tensorflow.keras.layers import MaxPooling2D, Conv2D, concatenate, Dropout, UpSampling2D
-from tensorflow.keras.models import Model
+from tensorflow.keras.layers import MaxPooling2D, Conv2D, concatenate, Dropout, UpSampling2D  # pylint: disable=import-error
+from tensorflow.keras.models import Model  # pylint: disable=import-error
 
 
 class UNet(Model):
@@ -13,60 +13,86 @@ class UNet(Model):
                  padding="same",
                  initializer="he_normal",
                  dropout=0.5):
+        """Instance a new UNet model class
+
+        Keyword Arguments:
+            name {str} -- The name of the model (default: {"Unet"})
+            activation {str} -- Activation function type (default: {"relu"})
+            padding {str} -- Kernel padding type (default: {"same"})
+            initializer {str} -- Kernel initialization type (default: {"he_normal"})
+            dropout {float} -- Dropout rate for droupout layers (default: {0.5})
+        """
         super(UNet, self).__init__(name=name)
 
         self.__init_downsample_block(activation, padding, initializer, dropout)
-        self.__init_upsample_block(activation, padding, initializer, dropout)
+        self.__init_upsample_block(activation, padding, initializer)
 
     def call(self, inputs):
-        """Downsample forward pass"""
-        x = self.__conv1_a(inputs)
-        conv_1 = self.__conv1_b(x)  # We store this in conv_1 for upsampling
-        x = self.__pool1(conv_1)
-        x = self.__conv2_a(x)
-        conv_2 = self.__conv2_b(x)  # We store this in conv_3 for upsampling
-        x = self.__pool2(conv_2)
-        x = self.__conv3_a(x)
-        conv_3 = self.__conv3_b(x)  # We store this in conv_3 for upsampling
-        x = self.__pool3(conv_3)
-        x = self.__conv4_a(x)
-        x = self.__conv4_b(x)
-        drop_4 = self.__drop4(x)  # We store this in drop_4 for upsampling
-        x = self.__pool4(drop_4)
-        x = self.__conv5_a(x)
-        x = self.__conv5_b(x)
-        x = self._drop5(x)
+        """Forward pass for the UNet
 
-        """Upsample forward pass"""
-        x = self.__up6_a(x)
-        x = self.__up6_b(x)
-        x = concatenate([drop_4, x], axis=3)
-        x = self.__conv6_a(x)
-        x = self.__conv6_b(x)
-        x = self.__up7_a(x)
-        x = self.__up7_b(x)
-        x = concatenate([conv_3, x], axis=3)
-        x = self.__conv7_a(x)
-        x = self.__conv7_b(x)
-        x = self.__up8_a(x)
-        x = self.__up8_b(x)
-        x = concatenate([conv_2, x], axis=3)
-        x = self.__conv8_a(x)
-        x = self.__conv8_b(x)
-        x = self.__up9_a(x)
-        x = self.__up9_b(x)
-        x = concatenate([conv_1, x], axis=3)
-        x = self.__conv9_a(x)
-        x = self.__conv9_b(x)
-        x = self.__conv9_c(x)
+        Arguments:
+            inputs {tensorflow.keras.layers.Input} -- The inputs to the network
 
-        return self.__conv10(x)
+        Returns:
+            tensorflow.keras.layers.Output -- The output of te last layer
+        """
+
+        # Downsample blocks
+        output = self.__conv1_a(inputs)
+        conv_1 = self.__conv1_b(output)  # We store this in conv_1 for upsampling
+        output = self.__pool1(conv_1)
+        output = self.__conv2_a(output)
+        conv_2 = self.__conv2_b(output)  # We store this in conv_3 for upsampling
+        output = self.__pool2(conv_2)
+        output = self.__conv3_a(output)
+        conv_3 = self.__conv3_b(output)  # We store this in conv_3 for upsampling
+        output = self.__pool3(conv_3)
+        output = self.__conv4_a(output)
+        output = self.__conv4_b(output)
+        drop_4 = self.__drop4(output)  # We store this in drop_4 for upsampling
+        output = self.__pool4(drop_4)
+        output = self.__conv5_a(output)
+        output = self.__conv5_b(output)
+        output = self._drop5(output)
+
+        # Upsample blocks
+        output = self.__up6_a(output)
+        output = self.__up6_b(output)
+        output = concatenate([drop_4, output], axis=3)
+        output = self.__conv6_a(output)
+        output = self.__conv6_b(output)
+        output = self.__up7_a(output)
+        output = self.__up7_b(output)
+        output = concatenate([conv_3, output], axis=3)
+        output = self.__conv7_a(output)
+        output = self.__conv7_b(output)
+        output = self.__up8_a(output)
+        output = self.__up8_b(output)
+        output = concatenate([conv_2, output], axis=3)
+        output = self.__conv8_a(output)
+        output = self.__conv8_b(output)
+        output = self.__up9_a(output)
+        output = self.__up9_b(output)
+        output = concatenate([conv_1, output], axis=3)
+        output = self.__conv9_a(output)
+        output = self.__conv9_b(output)
+        output = self.__conv9_c(output)
+
+        return self.__conv10(output)
 
     def __init_downsample_block(self,
                                 activation,
                                 padding,
                                 initializer,
                                 dropout):
+        """Creates the downsample conv blocks
+
+        Arguments:
+            activation {str} -- The activation function type
+            padding {str} -- The kernel padding type
+            initializer {str} -- Kernel initialization type
+            dropout {float} -- Dropout rate for dropout layers
+        """
         self.__conv1_a = Conv2D(64, 3, activation=activation, padding=padding,
                                 kernel_initializer=initializer)
         self.__conv1_b = Conv2D(64, 3, activation=activation, padding=padding,
@@ -102,8 +128,15 @@ class UNet(Model):
     def __init_upsample_block(self,
                               activation,
                               padding,
-                              initializer,
-                              dropout):
+                              initializer):
+        """Creates the upsample conv and deconv blocks
+
+        Arguments:
+            activation {str} -- The activation function type
+            padding {str} -- The kernel padding type
+            initializer {str} -- Kernel initialization type
+            dropout {float} -- Dropout rate for dropout layers
+        """
         self.__up6_a = UpSampling2D(size=(2, 2))
         self.__up6_b = Conv2D(512, 3, activation=activation, padding=padding,
                               kernel_initializer=initializer)
@@ -145,6 +178,6 @@ class UNet(Model):
 
 
 if __name__ == "__main__":
-    unet = UNet()
-    unet.build((None, 480, 640, 1))
-    unet.summary()
+    UNET = UNet()
+    UNET.build((None, 480, 640, 1))
+    UNET.summary()

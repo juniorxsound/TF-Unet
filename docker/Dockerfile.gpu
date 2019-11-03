@@ -1,6 +1,6 @@
-FROM tensorflow/tensorflow:latest-py3
+FROM tensorflow/tensorflow:latest-gpu-py3
 LABEL Author="Or Fleisher <contact@orfleisher.com>"
-LABEL Title="Depth estimation from stereo imagery"
+LABEL Title="Generic UNetwork for Tensorflow 2.0"
 
 # Run in non-interactive mode
 ENV DEBIAN_FRONTEND=noninteractive 
@@ -17,9 +17,10 @@ RUN apt-get update && apt-get install -y \
     pkg-config \
     python-dev \ 
     libopencv-dev \
-    wget
+    wget \
+    pylint
 
-WORKDIR /src
+WORKDIR /unet
 COPY requirements.txt .
 
 # Install the python dependencies
