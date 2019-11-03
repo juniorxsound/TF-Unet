@@ -183,13 +183,13 @@ class UNet(Model):
 if __name__ == "__main__":
     from numpy import random  # pylint: disable=import-error
 
-    # Generate 10 random images for testing the network
+    # Generate 1 random image for testing the network
     RANDOM_X = random.random((1, 240, 320, 1))
     RANDOM_Y = random.random((1, 240, 320, 1))
 
     UNET = UNet()
     # UNET.build((None, 480, 640, 1))
-    UNET.compile(optimizer='rmsprop',
+    UNET.compile(optimizer='adam',
                  loss='binary_crossentropy',
                  metrics=['accuracy'])
 
