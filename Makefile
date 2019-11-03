@@ -22,7 +22,7 @@ shell:
 	docker run $(runtime) -w /data --rm -it -v `pwd`:/data -t $(docker_image_tag_name) /bin/bash
 
 lint:
-	docker run $(runtime) -w /data --rm -it -v `pwd`:/data -t $(docker_image_tag_name) pylint ./unet
+	docker run $(runtime) -w /data --rm -it -v `pwd`:/data -t $(docker_image_tag_name) pylint ./unet/unet.py
 
 jupyter:
 	docker run $(runtime) -p 8888:8888 -w /data --rm -it -v `pwd`:/data -t $(docker_image_tag_name) jupyter notebook --allow-root \
