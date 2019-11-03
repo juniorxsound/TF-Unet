@@ -1,93 +1,150 @@
-import tensorflow as tf
-from tensorflow.keras.layers import MaxPooling2D, Conv2D, concatenate, Dropout, UpSampling2D, Input
-from tensorflow.keras.models import Model, Sequential
-from tensorflow.keras.optimizers import Adam
+"""TF-UNet written by @juniorxsound <https://orfleisher.com>"""
 
-def UNet(pretrained_weights=None, input_size=(480, 640, 1)):
-    
-    inputs = Input(input_size)
+# Dependencies
+from tensorflow.keras.layers import MaxPooling2D, Conv2D, concatenate, Dropout, UpSampling2D
+from tensorflow.keras.models import Model
 
-    '''
-    Downsample
-    '''
-    conv1 = Conv2D(64, 3, activation='relu', padding='same',
-                   kernel_initializer='he_normal')(inputs)
-    conv1 = Conv2D(64, 3, activation='relu', padding='same',
-                   kernel_initializer='he_normal')(conv1)
-    pool1 = MaxPooling2D(pool_size=(2, 2))(conv1)
 
-    conv2 = Conv2D(128, 3, activation='relu', padding='same',
-                   kernel_initializer='he_normal')(pool1)
-    conv2 = Conv2D(128, 3, activation='relu', padding='same',
-                   kernel_initializer='he_normal')(conv2)
-    pool2 = MaxPooling2D(pool_size=(2, 2))(conv2)
+class UNet(Model):
+    """A UNet model class for Tensorflow 2.0 using Keras"""
 
-    conv3 = Conv2D(256, 3, activation='relu', padding='same',
-                   kernel_initializer='he_normal')(pool2)
-    conv3 = Conv2D(256, 3, activation='relu', padding='same',
-                   kernel_initializer='he_normal')(conv3)
-    pool3 = MaxPooling2D(pool_size=(2, 2))(conv3)
+    def __init__(self, name="Unet",
+                 activation="relu",
+                 padding="same",
+                 initializer="he_normal",
+                 dropout=0.5):
+        super(UNet, self).__init__(name=name)
 
-    conv4 = Conv2D(512, 3, activation='relu', padding='same',
-                   kernel_initializer='he_normal')(pool3)
-    conv4 = Conv2D(512, 3, activation='relu', padding='same',
-                   kernel_initializer='he_normal')(conv4)
-    drop4 = Dropout(0.5)(conv4)
-    pool4 = MaxPooling2D(pool_size=(2, 2))(drop4)
+        self.__init_downsample_block(activation, padding, initializer, dropout)
+        self.__init_upsample_block(activation, padding, initializer, dropout)
 
-    conv5 = Conv2D(1024, 3, activation='relu', padding='same',
-                   kernel_initializer='he_normal')(pool4)
-    conv5 = Conv2D(1024, 3, activation='relu', padding='same',
-                   kernel_initializer='he_normal')(conv5)
-    drop5 = Dropout(0.5)(conv5)
+    def call(self, inputs):
+        """Downsample forward pass"""
+        x = self.__conv1_a(inputs)
+        conv_1 = self.__conv1_b(x)  # We store this in conv_1 for upsampling
+        x = self.__pool1(conv_1)
+        x = self.__conv2_a(x)
+        conv_2 = self.__conv2_b(x)  # We store this in conv_3 for upsampling
+        x = self.__pool2(conv_2)
+        x = self.__conv3_a(x)
+        conv_3 = self.__conv3_b(x)  # We store this in conv_3 for upsampling
+        x = self.__pool3(conv_3)
+        x = self.__conv4_a(x)
+        x = self.__conv4_b(x)
+        drop_4 = self.__drop4(x)  # We store this in drop_4 for upsampling
+        x = self.__pool4(drop_4)
+        x = self.__conv5_a(x)
+        x = self.__conv5_b(x)
+        x = self._drop5(x)
 
-    '''
-    Upsample
-    '''
-    up6 = Conv2D(512, 3, activation='relu', padding='same',
-                 kernel_initializer='he_normal')(UpSampling2D(size=(2, 2))(drop5))
-    merge6 = concatenate([drop4, up6], axis=3)
-    conv6 = Conv2D(512, 3, activation='relu', padding='same',
-                   kernel_initializer='he_normal')(merge6)
-    conv6 = Conv2D(512, 3, activation='relu', padding='same',
-                   kernel_initializer='he_normal')(conv6)
+        """Upsample forward pass"""
+        x = self.__up6_a(x)
+        x = self.__up6_b(x)
+        x = concatenate([drop_4, x], axis=3)
+        x = self.__conv6_a(x)
+        x = self.__conv6_b(x)
+        x = self.__up7_a(x)
+        x = self.__up7_b(x)
+        x = concatenate([conv_3, x], axis=3)
+        x = self.__conv7_a(x)
+        x = self.__conv7_b(x)
+        x = self.__up8_a(x)
+        x = self.__up8_b(x)
+        x = concatenate([conv_2, x], axis=3)
+        x = self.__conv8_a(x)
+        x = self.__conv8_b(x)
+        x = self.__up9_a(x)
+        x = self.__up9_b(x)
+        x = concatenate([conv_1, x], axis=3)
+        x = self.__conv9_a(x)
+        x = self.__conv9_b(x)
+        x = self.__conv9_c(x)
 
-    up7 = Conv2D(256, 3, activation='relu', padding='same',
-                 kernel_initializer='he_normal')(UpSampling2D(size=(2, 2))(conv6))
-    merge7 = concatenate([conv3, up7], axis=3)
-    conv7 = Conv2D(256, 3, activation='relu', padding='same',
-                   kernel_initializer='he_normal')(merge7)
-    conv7 = Conv2D(256, 3, activation='relu', padding='same',
-                   kernel_initializer='he_normal')(conv7)
+        return self.__conv10(x)
 
-    up8 = Conv2D(128, 2, activation='relu', padding='same',
-                 kernel_initializer='he_normal')(UpSampling2D(size=(2, 2))(conv7))
-    merge8 = concatenate([conv2, up8], axis=3)
-    conv8 = Conv2D(128, 3, activation='relu', padding='same',
-                   kernel_initializer='he_normal')(merge8)
-    conv8 = Conv2D(128, 3, activation='relu', padding='same',
-                   kernel_initializer='he_normal')(conv8)
+    def __init_downsample_block(self,
+                                activation,
+                                padding,
+                                initializer,
+                                dropout):
+        self.__conv1_a = Conv2D(64, 3, activation=activation, padding=padding,
+                                kernel_initializer=initializer)
+        self.__conv1_b = Conv2D(64, 3, activation=activation, padding=padding,
+                                kernel_initializer=initializer)
+        self.__pool1 = MaxPooling2D(pool_size=(2, 2))
 
-    up9 = Conv2D(64, 2, activation='relu', padding='same',
-                 kernel_initializer='he_normal')(UpSampling2D(size=(2, 2))(conv8))
-    merge9 = concatenate([conv1, up9], axis=3)
-    conv9 = Conv2D(64, 3, activation='relu', padding='same',
-                   kernel_initializer='he_normal')(merge9)
-    conv9 = Conv2D(64, 3, activation='relu', padding='same',
-                   kernel_initializer='he_normal')(conv9)
-    conv9 = Conv2D(2, 3, activation='relu', padding='same',
-                   kernel_initializer='he_normal')(conv9)
-    conv10 = Conv2D(1, 1, activation='relu')(conv9)
+        self.__conv2_a = Conv2D(128, 3, activation=activation, padding=padding,
+                                kernel_initializer=initializer)
+        self.__conv2_b = Conv2D(128, 3, activation=activation, padding=padding,
+                                kernel_initializer=initializer)
+        self.__pool2 = MaxPooling2D(pool_size=(2, 2))
 
-    model = Model(inputs=inputs, outputs=conv10)
+        self.__conv3_a = Conv2D(256, 3, activation=activation, padding=padding,
+                                kernel_initializer=initializer)
+        self.__conv3_b = Conv2D(256, 3, activation=activation, padding=padding,
+                                kernel_initializer=initializer)
+        self.__pool3 = MaxPooling2D(pool_size=(2, 2))
 
-    model.compile(optimizer='adam', loss='mse', metrics=['accuracy', 'mse'])
+        self.__conv4_a = Conv2D(512, 3, activation=activation, padding=padding,
+                                kernel_initializer=initializer)
+        self.__conv4_b = Conv2D(512, 3, activation=activation, padding=padding,
+                                kernel_initializer=initializer)
+        self.__drop4 = Dropout(dropout)
+        self.__pool4 = MaxPooling2D(pool_size=(2, 2))
 
-    if(pretrained_weights):
-        model.load_weights(pretrained_weights)
+        self.__conv5_a = Conv2D(1024, 3, activation=activation, padding=padding,
+                                kernel_initializer=initializer)
+        self.__conv5_b = Conv2D(1024, 3, activation=activation, padding=padding,
+                                kernel_initializer=initializer)
 
-    return model
+        self._drop5 = Dropout(dropout)
 
-if __name__ == '__main__':
+    def __init_upsample_block(self,
+                              activation,
+                              padding,
+                              initializer,
+                              dropout):
+        self.__up6_a = UpSampling2D(size=(2, 2))
+        self.__up6_b = Conv2D(512, 3, activation=activation, padding=padding,
+                              kernel_initializer=initializer)
+
+        self.__conv6_a = Conv2D(512, 3, activation=activation, padding=padding,
+                                kernel_initializer=initializer)
+        self.__conv6_b = Conv2D(512, 3, activation=activation, padding=padding,
+                                kernel_initializer=initializer)
+
+        self.__up7_a = UpSampling2D(size=(2, 2))
+        self.__up7_b = Conv2D(256, 3, activation=activation, padding=padding,
+                              kernel_initializer=initializer)
+
+        self.__conv7_a = Conv2D(256, 3, activation=activation, padding=padding,
+                                kernel_initializer=initializer)
+        self.__conv7_b = Conv2D(256, 3, activation=activation, padding=padding,
+                                kernel_initializer=initializer)
+
+        self.__up8_a = UpSampling2D(size=(2, 2))
+        self.__up8_b = Conv2D(128, 2, activation=activation, padding=padding,
+                              kernel_initializer=initializer)
+
+        self.__conv8_a = Conv2D(128, 3, activation=activation, padding=padding,
+                                kernel_initializer=initializer)
+        self.__conv8_b = Conv2D(128, 3, activation=activation, padding=padding,
+                                kernel_initializer=initializer)
+
+        self.__up9_a = UpSampling2D(size=(2, 2))
+        self.__up9_b = Conv2D(64, 2, activation=activation, padding=padding,
+                              kernel_initializer=initializer)
+
+        self.__conv9_a = Conv2D(64, 3, activation=activation, padding=padding,
+                                kernel_initializer=initializer)
+        self.__conv9_b = Conv2D(64, 3, activation=activation, padding=padding,
+                                kernel_initializer=initializer)
+        self.__conv9_c = Conv2D(2, 3, activation=activation, padding=padding,
+                                kernel_initializer=initializer)
+        self.__conv10 = Conv2D(1, 1, activation=activation)
+
+
+if __name__ == "__main__":
     unet = UNet()
+    unet.build((None, 480, 640, 1))
     unet.summary()
