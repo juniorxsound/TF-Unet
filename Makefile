@@ -30,5 +30,8 @@ jupyter:
 log:
 	docker run -p 6006:6006 -w /data --rm -v `pwd`:/data -t $(docker_image_tag_name) tensorboard --logdir ./logs
 
+clean-logs:
+	rm -rf ./logs/* && touch ./logs/.gitkeep
+
 test-unet:
 	docker run $(runtime) -w /data --rm -it -v `pwd`:/data -t $(docker_image_tag_name) python ./unet/unet.py
