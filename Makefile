@@ -18,6 +18,9 @@ build-clean:
 train:
 	docker run $(runtime) -w /data --rm -it -v `pwd`:/data -t $(docker_image_tag_name) python ./train.py
 
+evaluate:
+	docker run $(runtime) -w /data --rm -it -v `pwd`:/data -t $(docker_image_tag_name) python ./evaluate.py
+
 shell:
 	docker run $(runtime) -w /data --rm -it -v `pwd`:/data -t $(docker_image_tag_name) /bin/bash
 

@@ -11,7 +11,6 @@ from unet.unet import UNet
 
 # Some constants
 train_num_samples = 100
-eval_num_samples = 10
 image_width, image_height = 128, 128
 num_ecpochs = 1
 batch_size = 1
@@ -24,11 +23,6 @@ tensorboard_callback = keras.callbacks.TensorBoard(log_dir=logdir, update_freq='
 dataset_train = ShapesDataset()
 dataset_train.load_shapes(train_num_samples, image_height, image_width)
 dataset_train.prepare()
-
-# Validation dataset
-dataset_val = ShapesDataset()
-dataset_val.load_shapes(eval_num_samples, image_height, image_width)
-dataset_val.prepare()
 
 # Create U-Network
 unet = UNet()
