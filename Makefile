@@ -28,7 +28,7 @@ lint:
 	docker run $(runtime) -w /data --rm -it -v `pwd`:/data -t $(docker_image_tag_name) pylint ./unet/unet.py
 
 jupyter:
-	docker run $(runtime) -p 8888:8888 -w /data --rm -it -v `pwd`:/data -t $(docker_image_tag_name) jupyter notebook --allow-root \
+	docker run $(runtime) -p 8888:8888 -w /data --rm -it -v `pwd`:/data -t $(docker_image_tag_name) jupyter notebook --allow-root --ip=0.0.0.0 
 
 log:
 	docker run -p 6006:6006 -w /data --rm -v `pwd`:/data -t $(docker_image_tag_name) tensorboard --logdir ./logs

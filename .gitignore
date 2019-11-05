@@ -4,3 +4,4 @@ __pycache__
 weights/*
 logs/*
 !**/.gitkeep
+**/*.ipynb_checkpoints
