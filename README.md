@@ -32,7 +32,7 @@ Next build the Docker image by simply running `make build`
 
 ## Training
 This repository uses the `ShapeDataset` synthetic data generator written by Matterport (in [Mask R-CNN](https://github.com/matterport/Mask_RCNN/blob/master/samples/shapes/train_shapes.ipynb)). No download is needed, as all data is generated during runtime, here is a sample of the dataset
-![Dataset Sample](./samples/sample.png)
+![Dataset Sample](./samples/sample.png){:width="400px"}
 
 To start training, simply call `make train` which will start the training process using the [parameters defined in `train.py`](https://github.com/juniorxsound/TF-Unet/blob/master/train.py#L13-L16). A model will be saved at the end of the training process into the weights folder in [`SavedModel` format](https://www.tensorflow.org/guide/saved_model).
 
