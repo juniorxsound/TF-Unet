@@ -32,7 +32,7 @@ Next build the Docker image by simply running `make build`
 
 ## Training
 This repository uses the `ShapeDataset` synthetic data generator written by Matterport (in [Mask R-CNN](https://github.com/matterport/Mask_RCNN/blob/master/samples/shapes/train_shapes.ipynb)). No download is needed, as all data is generated during runtime, here is a sample of the dataset
-![Dataset Sample](./samples/sample.png){:width="400px"}
+<img src="./samples/sample.png" width="500">
 
 To start training, simply call `make train` which will start the training process using the [parameters defined in `train.py`](https://github.com/juniorxsound/TF-Unet/blob/master/train.py#L13-L16). A model will be saved at the end of the training process into the weights folder in [`SavedModel` format](https://www.tensorflow.org/guide/saved_model).
 
@@ -50,7 +50,7 @@ See the Jupyter [Prediction notebook](https://github.com/juniorxsound/TF-Unet/bl
 ## Architecture
 The implementation was inspired by [U-Net: Convolutional Networks for Biomedical Image Segmentation](https://lmb.informatik.uni-freiburg.de/people/ronneber/u-net/)
 
-![UNet Architecture](./samples/unet_arch.png)
+<img src="./samples/unet_arch.png" width="500">
 
 ## Thanks to
 The [original paper authors](https://arxiv.org/abs/1505.04597), this [Keras UNet implementation](https://github.com/zhixuhao/unet), this [Tensorflow UNet implementation](https://github.com/jakeret/tf_unet) and [Mask R-CNN authors](https://github.com/matterport/Mask_RCNN).
