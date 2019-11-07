@@ -11,7 +11,7 @@ from unet.unet import UNet
 
 # Some constants
 train_num_samples = 100
-image_width, image_height = 128, 128
+image_width, image_height = 256, 256
 num_ecpochs = 1
 batch_size = 1
 
@@ -32,7 +32,7 @@ unet.compile(optimizer="adam",
 
 # Organize the dataset in two numpy arrays
 image = [dataset_train.load_image(image_id).astype(
-    np.float16) for image_id in dataset_train.image_ids]
+    np.float32) / 255 for image_id in dataset_train.image_ids]
 masks = []
 for image_id in dataset_train.image_ids:
     mask, classes = dataset_train.load_mask(image_id)
@@ -41,6 +41,7 @@ for image_id in dataset_train.image_ids:
     mask_treshold = np.expand_dims(
         np.where(mask[:, :, 0] > 0, 255, 0).astype(np.float16),
         axis=3)
+    mask_treshold = mask_treshold / 255
     masks.append(mask_treshold)
 
 # Train

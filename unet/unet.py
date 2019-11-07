@@ -177,7 +177,7 @@ class UNet(Model):
                               kernel_initializer=initializer)
         self.conv9_c = Conv2D(2, 3, activation=activation, padding=padding,
                               kernel_initializer=initializer)
-        self.conv10 = Conv2D(1, 1, activation=activation)
+        self.conv10 = Conv2D(1, 1, activation="sigmoid")
 
 
 if __name__ == "__main__":
