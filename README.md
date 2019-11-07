@@ -5,8 +5,7 @@
     <p>
         <a href="#getting-started">Getting started</a> •
         <a href="#training">Training</a> •
-        <a href="#evaluation">Evaluation</a> •
-        <a href="#contributing">Contributing</a>
+        <a href="#evaluation">Evaluation</a>
     </p>
     <img src="https://travis-ci.com/juniorxsound/TF-Unet.svg?token=ztzi6EexNpaHGeSp1q8W&branch=master" />
     <img src="https://img.shields.io/badge/python-3.6-blue.svg" />
