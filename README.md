@@ -12,7 +12,7 @@
 </div>
 
 ## Getting started
-Looking for Jupyter notebooks? checkout the [training](https://github.com/juniorxsound/TF-Unet/blob/master/notebooks/Training.ipynb), [evaulation](https://github.com/juniorxsound/TF-Unet/blob/master/notebooks/Evaluation.ipynb) and [prediction](https://github.com/juniorxsound/TF-Unet/blob/master/notebooks/Prediction.ipynb) notebooks or run `make jupyter` to serve them locally.
+Looking for Jupyter notebooks? checkout the [training](https://github.com/juniorxsound/TF-Unet/blob/master/notebooks/Training.ipynb), [evaulation](https://github.com/juniorxsound/TF-Unet/blob/master/notebooks/Evaluation.ipynb) and [prediction](https://github.com/juniorxsound/TF-Unet/blob/master/notebooks/Prediction.ipynb) notebooks or run `make jupyter` to serve them locally. Looking for pre-trained weights? [download them here](https://storage.cloud.google.com/orfleisher-production.appspot.com/models/unet/toy_network.zip).
 
 ### Dependencies
 To quickly get started make sure you have the following dependencies installed:
@@ -46,7 +46,9 @@ To quickly evaluate download the [pre-trained weights](https://storage.cloud.goo
 > The weights provided were trained for 50 epochs on 8000 samples with batch size of 18. Training takes 5 hours using 2 GTX 2080ti's and reaches 96.56% accuracy.
 
 ## Prediction
-See the Jupyter [Prediction notebook](https://github.com/juniorxsound/TF-Unet/blob/master/notebooks/Prediction.ipynb)
+See the Jupyter [Prediction notebook](https://github.com/juniorxsound/TF-Unet/blob/master/notebooks/Prediction.ipynb).
+
+<img src="./samples/prediction_treshold.png" width="500" />
 
 ## Architecture
 The implementation was inspired by [U-Net: Convolutional Networks for Biomedical Image Segmentation](https://lmb.informatik.uni-freiburg.de/people/ronneber/u-net/)
