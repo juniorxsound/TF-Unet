@@ -41,7 +41,9 @@ If you are interested in following the training process, you can use `make log` 
 If you want to train in a Jupyter notebook follow the [Training notebook](https://github.com/juniorxsound/TF-Unet/blob/master/notebooks/Training.ipynb)
 
 ## Evaluation
-To run evaluation simply use `make evaluate` or the Jupyter [Evaluation notebook](https://github.com/juniorxsound/TF-Unet/blob/master/notebooks/Evaluation.ipynb)
+To quickly evaluate download the [pre-trained weights](https://storage.cloud.google.com/orfleisher-production.appspot.com/models/unet/toy_network.zip) and unzip the contents into the weights folder. To run evaluation simply use `make evaluate` or the Jupyter [Evaluation notebook](https://github.com/juniorxsound/TF-Unet/blob/master/notebooks/Evaluation.ipynb).
+
+> The weights provided were trained for 50 epochs on 8000 samples with batch size of 18. Training takes 5 hours using 2 GTX 2080ti's and reaches 96.56% accuracy.
 
 ## Prediction
 See the Jupyter [Prediction notebook](https://github.com/juniorxsound/TF-Unet/blob/master/notebooks/Prediction.ipynb)
